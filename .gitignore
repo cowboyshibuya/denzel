@@ -1,0 +1,5 @@
+.build/
+.swiftpm/
+App/Denzel.xcodeproj/
+*.xcuserstate
+.DS_Store

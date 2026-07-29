@@ -1,0 +1,20 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build
+      - run: swift test
+      - run: ./scripts/check-spdx.sh
+      - name: Core/Rules must not import AppKit or SwiftUI
+        run: |
+          if grep -rlE '^import (AppKit|SwiftUI)' Sources/DenzelCore Sources/DenzelRules; then
+            echo "boundary violation: DenzelCore/DenzelRules imported AppKit or SwiftUI"
+            exit 1
+          fi

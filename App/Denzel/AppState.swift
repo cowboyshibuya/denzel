@@ -12,10 +12,12 @@ final class AppState {
     var needsReviewDocuments: [DocumentRecord] = []
     var filedDocuments: [DocumentRecord] = []
     var lastErrorMessage: String?
+    var lastWatcherActivity: String?
 
     private let store = LibraryLocationStore()
     private let resolver = LibraryLocationResolver()
     private var vendorRules: [VendorRule] = []
+    private var inboxWatcher: InboxWatcher?
 
     func loadOnLaunch() {
         guard let location = store.load() else {
@@ -29,6 +31,7 @@ final class AppState {
             } else {
                 library = DenzelLibrary(location: location, resolver: resolver)
                 refreshDocuments()
+                startWatchingInbox()
             }
         } catch {
             // Folder moved/deleted/inaccessible — ask again rather than crash.
@@ -41,6 +44,7 @@ final class AppState {
         library = DenzelLibrary(location: location, resolver: resolver)
         needsLibraryPicker = false
         refreshDocuments()
+        startWatchingInbox()
     }
 
     func refreshDocuments() {
@@ -55,12 +59,10 @@ final class AppState {
     }
 
     /// Runs every dropped file through the real pipeline (stage -> extract
-    /// -> match -> gate) — the same path M4's watched folder will use.
+    /// -> match -> gate) — the same path the watched Inbox folder uses.
     func ingest(urls: [URL]) {
         guard let library else { return }
-        if vendorRules.isEmpty {
-            vendorRules = (try? VendorRuleLoader.loadBundledRules()) ?? []
-        }
+        loadVendorRulesIfNeeded()
         for url in urls {
             do {
                 _ = try ExtractionPipeline.process(fileURL: url, library: library, rules: vendorRules)
@@ -69,6 +71,47 @@ final class AppState {
             }
         }
         refreshDocuments()
+    }
+
+    /// Watches `<library>/Inbox/` — a physical, user-visible drop folder,
+    /// distinct from `LibraryFiler`'s internal `_staging/` — for files
+    /// dropped in from Finder while the app is running.
+    func startWatchingInbox() {
+        guard let library, inboxWatcher == nil else { return }
+        loadVendorRulesIfNeeded()
+        do {
+            let watchDirectory = try library.rootURL().appendingPathComponent("Inbox")
+            let watcher = InboxWatcher(directory: watchDirectory) { [weak self] url in
+                Task { @MainActor in self?.processWatchedFile(url) }
+            }
+            try watcher.start()
+            inboxWatcher = watcher
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
+    }
+
+    func stopWatchingInbox() {
+        inboxWatcher?.stop()
+        inboxWatcher = nil
+    }
+
+    private func processWatchedFile(_ url: URL) {
+        guard let library else { return }
+        do {
+            let record = try ExtractionPipeline.process(fileURL: url, library: library, rules: vendorRules)
+            lastWatcherActivity = record.needsReview
+                ? "Needs review: \(url.lastPathComponent)"
+                : "Filed: \(url.lastPathComponent)"
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
+        refreshDocuments()
+    }
+
+    private func loadVendorRulesIfNeeded() {
+        guard vendorRules.isEmpty else { return }
+        vendorRules = (try? VendorRuleLoader.loadBundledRules()) ?? []
     }
 
     func fileManually(recordID: UUID, fields: FiledFields) {
@@ -109,5 +152,6 @@ final class AppState {
         store.save(location)
         library = DenzelLibrary(location: location, resolver: resolver)
         refreshDocuments()
+        startWatchingInbox()
     }
 }

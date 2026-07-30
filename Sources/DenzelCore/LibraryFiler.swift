@@ -98,7 +98,7 @@ public final class LibraryFiler {
         return record
     }
 
-    /// Stages an incoming file into `Inbox/` with a placeholder sidecar so
+    /// Stages an incoming file into `_staging/` with a placeholder sidecar so
     /// it's tracked immediately; the extraction pipeline or a reviewer fills
     /// in real fields and calls `finalize`.
     @discardableResult
@@ -108,8 +108,12 @@ public final class LibraryFiler {
             throw FilerError.duplicateContent(existingID: existing.id)
         }
 
+        // Internal staging area — deliberately NOT named "Inbox": M4's
+        // watched folder lives at "Inbox/" and must stay disjoint from
+        // wherever staging writes, or a stage-triggered rename inside a
+        // watched "Inbox/" would re-trigger the watcher on its own output.
         let ext = source.pathExtension.isEmpty ? "pdf" : source.pathExtension
-        let relativePath = "Inbox/\(id.uuidString).\(ext)"
+        let relativePath = "_staging/\(id.uuidString).\(ext)"
         let destination = root.appendingPathComponent(relativePath)
         try AtomicPlacer.place(source: source, at: destination)
 

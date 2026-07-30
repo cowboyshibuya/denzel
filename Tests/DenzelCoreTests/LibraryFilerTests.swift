@@ -78,7 +78,7 @@ struct LibraryFilerTests {
 
         let source = try makeFixturePDF(in: root, name: "dropped.pdf")
         let staged = try filer.stage(source: source)
-        #expect(staged.filePath.hasPrefix("Inbox/"))
+        #expect(staged.filePath.hasPrefix("_staging/"))
         #expect(staged.needsReview)
 
         let finalized = try filer.finalize(

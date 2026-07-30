@@ -40,7 +40,7 @@ if [ -n "$(git status --porcelain App/project.yml)" ]; then
   git add App/project.yml
   git commit -m "Release v$VERSION"
 fi
-git tag "v$VERSION"
+git tag "v$VERSION" 2>/dev/null || echo "tag v$VERSION already exists, leaving it as-is"
 
 echo "==> Regenerating Xcode project"
 (cd App && xcodegen generate)
@@ -57,9 +57,24 @@ xcodebuild -exportArchive -archivePath "$BUILD_DIR/Denzel.xcarchive" \
 echo "==> Verifying signature"
 codesign --verify --deep --strict --verbose=2 "$BUILD_DIR/export/Denzel.app"
 
-echo "==> Packaging"
+echo "==> Packaging zip (this is also Sparkle's update payload format)"
 ditto -c -k --keepParent "$BUILD_DIR/export/Denzel.app" "$BUILD_DIR/Denzel-$VERSION.zip"
 echo "Built $BUILD_DIR/Denzel-$VERSION.zip"
+
+echo "==> Packaging DMG (drag-to-Applications installer)"
+DMG_STAGING="$BUILD_DIR/dmg-staging"
+rm -rf "$DMG_STAGING"
+mkdir -p "$DMG_STAGING"
+cp -R "$BUILD_DIR/export/Denzel.app" "$DMG_STAGING/"
+ln -s /Applications "$DMG_STAGING/Applications"
+rm -f "$BUILD_DIR/Denzel-$VERSION.dmg"
+hdiutil create -volname "Denzel" -srcfolder "$DMG_STAGING" -ov -format UDZO "$BUILD_DIR/Denzel-$VERSION.dmg" >/dev/null
+rm -rf "$DMG_STAGING"
+echo "Built $BUILD_DIR/Denzel-$VERSION.dmg"
+# Note: a DMG distributed publicly needs its own notarize+staple pass,
+# separate from the .app inside it — not done here since --publish only
+# notarizes the zip. Add it if the DMG becomes the public download format;
+# today it's a local convenience artifact.
 
 if [ "$PUBLISH" = false ]; then
   echo "==> Stopping here. Re-run with --publish to notarize and create a public GitHub Release."

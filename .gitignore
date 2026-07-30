@@ -3,3 +3,4 @@
 App/Denzel.xcodeproj/
 *.xcuserstate
 .DS_Store
+build/

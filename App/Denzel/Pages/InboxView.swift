@@ -15,10 +15,12 @@ struct InboxView: View {
             description: Text("Drop an invoice PDF here, or drop one into the library's Inbox folder in Finder. It's matched against the rulebook and either filed automatically or sent to Review.")
         )
         .background(isDropTargeted ? Color.accentColor.opacity(0.08) : Color.clear)
-        .dropDestination(for: URL.self) { urls, _ in
-            appState.ingest(urls: urls)
+        .onDrop(of: InboxDropHandler.acceptedTypeIdentifiers, isTargeted: $isDropTargeted) { providers in
+            InboxDropHandler.handle(providers: providers) { urls in
+                appState.ingest(urls: urls)
+            }
             return true
-        } isTargeted: { isDropTargeted = $0 }
+        }
         .overlay(alignment: .top) {
             if let toast {
                 Text(toast)

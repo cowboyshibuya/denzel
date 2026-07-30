@@ -1,0 +1,16 @@
+id: github
+name: GitHub
+aliases:
+  - GitHub
+  - GitHub, Inc.
+match:
+  any:
+    - text_contains: "github.com"
+fields:
+  invoice_number:
+    regex: 'Invoice number:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Amount due:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

@@ -1,0 +1,16 @@
+id: cloudflare
+name: Cloudflare
+aliases:
+  - Cloudflare
+  - Cloudflare, Inc.
+match:
+  any:
+    - text_contains: "cloudflare.com"
+fields:
+  invoice_number:
+    regex: 'Invoice #:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

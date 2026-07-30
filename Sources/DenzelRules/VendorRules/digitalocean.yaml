@@ -1,0 +1,16 @@
+id: digitalocean
+name: DigitalOcean
+aliases:
+  - DigitalOcean
+  - DigitalOcean, LLC
+match:
+  any:
+    - text_contains: "digitalocean.com"
+fields:
+  invoice_number:
+    regex: 'Invoice No\.?:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total Due:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

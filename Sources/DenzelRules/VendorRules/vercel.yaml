@@ -1,0 +1,16 @@
+id: vercel
+name: Vercel
+aliases:
+  - Vercel
+  - Vercel Inc.
+match:
+  any:
+    - text_contains: "vercel.com"
+fields:
+  invoice_number:
+    regex: 'Invoice #\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

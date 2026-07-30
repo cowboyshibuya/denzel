@@ -1,0 +1,16 @@
+id: stripe
+name: Stripe
+aliases:
+  - Stripe
+  - Stripe, Inc.
+match:
+  any:
+    - text_contains: "stripe.com"
+fields:
+  invoice_number:
+    regex: 'Invoice number\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Amount paid\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Date of issue"]

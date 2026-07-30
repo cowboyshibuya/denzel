@@ -2,18 +2,20 @@
 import Foundation
 import Observation
 import DenzelCore
+import DenzelRules
 
 @MainActor
 @Observable
 final class AppState {
     var library: DenzelLibrary?
     var needsLibraryPicker = false
-    var stagedDocuments: [DocumentRecord] = []
+    var needsReviewDocuments: [DocumentRecord] = []
     var filedDocuments: [DocumentRecord] = []
     var lastErrorMessage: String?
 
     private let store = LibraryLocationStore()
     private let resolver = LibraryLocationResolver()
+    private var vendorRules: [VendorRule] = []
 
     func loadOnLaunch() {
         guard let location = store.load() else {
@@ -45,22 +47,28 @@ final class AppState {
         guard let library else { return }
         do {
             let all = try library.documentStore().fetchAll()
-            stagedDocuments = all.filter(\.needsReview).sorted { $0.filedAt > $1.filedAt }
+            needsReviewDocuments = all.filter(\.needsReview).sorted { $0.filedAt > $1.filedAt }
             filedDocuments = all.filter { !$0.needsReview }.sorted { $0.filedAt > $1.filedAt }
         } catch {
             lastErrorMessage = String(describing: error)
         }
     }
 
-    func stageDropped(urls: [URL]) {
+    /// Runs every dropped file through the real pipeline (stage -> extract
+    /// -> match -> gate) — the same path M4's watched folder will use.
+    func ingest(urls: [URL]) {
         guard let library else { return }
-        do {
-            let filer = try library.filer()
-            for url in urls { _ = try filer.stage(source: url) }
-            refreshDocuments()
-        } catch {
-            lastErrorMessage = String(describing: error)
+        if vendorRules.isEmpty {
+            vendorRules = (try? VendorRuleLoader.loadBundledRules()) ?? []
         }
+        for url in urls {
+            do {
+                _ = try ExtractionPipeline.process(fileURL: url, library: library, rules: vendorRules)
+            } catch {
+                lastErrorMessage = String(describing: error)
+            }
+        }
+        refreshDocuments()
     }
 
     func fileManually(recordID: UUID, fields: FiledFields) {

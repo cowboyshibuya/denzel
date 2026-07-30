@@ -39,6 +39,12 @@ public struct DenzelLibrary {
         let root = try handles.rootURL()
         try LibraryScanner.rebuild(root: root, into: try documentStore())
     }
+
+    /// Exposed for library-internal processing (the extraction pipeline
+    /// needs an absolute URL to open a staged file) — the app/CLI layers
+    /// still never construct library paths themselves.
+    public func rootURL() throws -> URL { try handles.rootURL() }
+
 }
 
 /// Reference-type cache shared across copies of `DenzelLibrary` (a struct).

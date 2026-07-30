@@ -26,7 +26,7 @@ struct LibraryView: View {
             ToolbarItem {
                 Button("Undo", systemImage: "arrow.uturn.backward") { appState.undoLast() }
                     .keyboardShortcut("z", modifiers: .command)
-                    .disabled(appState.filedDocuments.isEmpty && appState.stagedDocuments.isEmpty)
+                    .disabled(appState.filedDocuments.isEmpty && appState.needsReviewDocuments.isEmpty)
             }
         }
     }

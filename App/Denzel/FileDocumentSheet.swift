@@ -23,8 +23,26 @@ struct FileDocumentSheet: View {
         return formatter
     }()
 
+    init(appState: AppState, record: DocumentRecord) {
+        self.appState = appState
+        self.record = record
+        // Prefill with whatever the pipeline already extracted, so
+        // reviewing a low-confidence guess is a correction, not a retype.
+        _vendor = State(initialValue: record.vendor == "Unknown" ? "" : record.vendor)
+        _invoiceNumber = State(initialValue: record.invoiceNumber ?? "")
+        _issueDate = State(initialValue: record.issueDate.flatMap(Self.dateFormatter.date(from:)) ?? Date())
+        _amount = State(initialValue: record.totalMinorUnits.map { String(format: "%.2f", Double($0) / 100) } ?? "")
+        _currency = State(initialValue: record.currency ?? "USD")
+    }
+
     var body: some View {
         Form {
+            if let reason = record.reviewReason {
+                Section {
+                    Label(reason, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.secondary)
+                }
+            }
             Section("Document") {
                 TextField("Vendor", text: $vendor)
                 TextField("Invoice number", text: $invoiceNumber)

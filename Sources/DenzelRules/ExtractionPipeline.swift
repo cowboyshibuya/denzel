@@ -21,23 +21,31 @@ public enum ExtractionPipeline {
         let stagedURL = root.appendingPathComponent(staged.filePath)
         let extraction = try PDFTextExtractor.extract(from: stagedURL)
 
+        var text = extraction.fullText
         if extraction.likelyScanned {
-            return try library.filer().finalize(
-                recordID: staged.id,
-                fields: FiledFields(vendor: "Unknown", needsReview: true, reviewReason: "no text layer (OCR fallback: see M3)")
-            )
+            // OCR is a quality fallback, not a trust upgrade: whatever text
+            // comes back — digital or recognized — runs through the exact
+            // same vendor/field confidence gates below.
+            let ocrText = (try? VisionTextRecognizer.recognizeText(from: stagedURL)) ?? ""
+            guard !ocrText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return try library.filer().finalize(
+                    recordID: staged.id,
+                    fields: FiledFields(vendor: "Unknown", needsReview: true, reviewReason: "no text layer and OCR found no text")
+                )
+            }
+            text = ocrText
         }
 
-        guard let vendorMatch = VendorMatcher.bestMatch(in: extraction.fullText, rules: rules),
+        guard let vendorMatch = VendorMatcher.bestMatch(in: text, rules: rules),
               vendorMatch.confidence >= ConfidenceThresholds.vendorMatch
         else {
             return try library.filer().finalize(
                 recordID: staged.id,
-                fields: FiledFields(vendor: "Unknown", needsReview: true, reviewReason: "vendor not confidently identified")
+                fields: FiledFields(vendor: "Unknown", needsReview: true, reviewReason: "vendor not confidently identified", extractedText: text)
             )
         }
 
-        let extracted = FieldExtractor.extract(fields: vendorMatch.rule.fields, from: extraction.fullText)
+        let extracted = FieldExtractor.extract(fields: vendorMatch.rule.fields, from: text)
         let missing = requiredFields.filter { (extracted[$0]?.confidence ?? 0) < ConfidenceThresholds.fieldMinimum }
 
         var confidenceFields: [String: Double] = [:]
@@ -49,12 +57,12 @@ public enum ExtractionPipeline {
             invoiceNumber: extracted["invoice_number"]?.value,
             issueDate: extracted["issue_date"]?.value,
             totalMinorUnits: (extracted["total"]?.value).flatMap { Int($0) },
-            currency: detectCurrency(in: extraction.fullText),
+            currency: detectCurrency(in: text),
             confidenceOverall: overallConfidence,
             confidenceFields: confidenceFields,
             needsReview: !missing.isEmpty,
             reviewReason: missing.isEmpty ? nil : "missing or low-confidence: \(missing.joined(separator: ", "))",
-            extractedText: extraction.fullText
+            extractedText: text
         )
         return try library.filer().finalize(recordID: staged.id, fields: fields)
     }

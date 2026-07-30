@@ -6,8 +6,8 @@ public struct TextExtractionResult {
     public let fullText: String
     public let perPageCharCounts: [Int]
 
-    /// The seam M3 (Vision OCR) plugs into: below ~50 chars/page means the
-    /// page almost certainly has no real text layer.
+    /// Triggers the Vision OCR fallback (`VisionTextRecognizer`): below
+    /// ~50 chars/page means the page almost certainly has no real text layer.
     public var likelyScanned: Bool {
         !perPageCharCounts.isEmpty && perPageCharCounts.allSatisfy { $0 < 50 }
     }

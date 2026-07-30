@@ -64,6 +64,56 @@ let fixtures: [Fixture] = [
         expectedVendor: "DigitalOcean", expectedInvoiceNumber: "DO-77021",
         expectedIssueDate: "2026-07-15", expectedTotalMinorUnits: 10000
     ),
+    Fixture(
+        vendorID: "aws",
+        lines: [
+            "Amazon Web Services, Inc.", "aws.amazon.com", "INVOICE",
+            "Invoice date: August 1, 2026", "Invoice Number: AWS-88213",
+            "Total: $215.40",
+        ],
+        expectedVendor: "Amazon Web Services", expectedInvoiceNumber: "AWS-88213",
+        expectedIssueDate: "2026-08-01", expectedTotalMinorUnits: 21540
+    ),
+    Fixture(
+        vendorID: "anthropic",
+        lines: [
+            "Anthropic, PBC", "anthropic.com", "INVOICE",
+            "Invoice date: September 3, 2026", "Invoice #: ANT-5521",
+            "Total: $50.00",
+        ],
+        expectedVendor: "Anthropic", expectedInvoiceNumber: "ANT-5521",
+        expectedIssueDate: "2026-09-03", expectedTotalMinorUnits: 5000
+    ),
+    Fixture(
+        vendorID: "openai",
+        lines: [
+            "OpenAI, LLC", "openai.com", "INVOICE",
+            "Invoice date: October 4, 2026", "Invoice number: OAI-3391",
+            "Amount due: $100.00",
+        ],
+        expectedVendor: "OpenAI", expectedInvoiceNumber: "OAI-3391",
+        expectedIssueDate: "2026-10-04", expectedTotalMinorUnits: 10000
+    ),
+    Fixture(
+        vendorID: "linear",
+        lines: [
+            "Linear Orbit, Inc.", "linear.app", "INVOICE",
+            "Invoice date: November 6, 2026", "Invoice # LIN-771",
+            "Total $8.00",
+        ],
+        expectedVendor: "Linear", expectedInvoiceNumber: "LIN-771",
+        expectedIssueDate: "2026-11-06", expectedTotalMinorUnits: 800
+    ),
+    Fixture(
+        vendorID: "notion",
+        lines: [
+            "Notion Labs, Inc.", "notion.so", "INVOICE",
+            "Invoice date: December 9, 2026", "Invoice No.: NOT-4021",
+            "Total Due: $10.00",
+        ],
+        expectedVendor: "Notion", expectedInvoiceNumber: "NOT-4021",
+        expectedIssueDate: "2026-12-09", expectedTotalMinorUnits: 1000
+    ),
 ]
 
 private func makeTempLibrary() throws -> DenzelLibrary {
@@ -73,9 +123,9 @@ private func makeTempLibrary() throws -> DenzelLibrary {
     return DenzelLibrary(location: LibraryLocation(bookmarkData: bookmark))
 }
 
-/// This is the M2 done-when: every one of the 5 synthetic vendor fixtures
+/// This is the M2 done-when: every one of the 10 synthetic vendor fixtures
 /// must auto-file correctly through the real pipeline (>= 90% is the
-/// brief's bar; with only 5 clean digital fixtures the target is 5/5).
+/// brief's bar; with all-clean digital fixtures the target is 10/10).
 struct VendorRuleFixtureTests {
     @Test(arguments: fixtures)
     func autoFilesCorrectly(fixture: Fixture) throws {

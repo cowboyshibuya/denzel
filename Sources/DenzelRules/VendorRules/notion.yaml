@@ -1,0 +1,16 @@
+id: notion
+name: Notion
+aliases:
+  - Notion
+  - Notion Labs, Inc.
+match:
+  any:
+    - text_contains: "notion.so"
+fields:
+  invoice_number:
+    regex: 'Invoice No\.?:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total Due:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

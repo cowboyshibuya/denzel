@@ -1,0 +1,16 @@
+id: linear
+name: Linear
+aliases:
+  - Linear
+  - Linear Orbit, Inc.
+match:
+  any:
+    - text_contains: "linear.app"
+fields:
+  invoice_number:
+    regex: 'Invoice #\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

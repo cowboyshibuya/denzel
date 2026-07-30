@@ -1,0 +1,16 @@
+id: openai
+name: OpenAI
+aliases:
+  - OpenAI
+  - OpenAI, LLC
+match:
+  any:
+    - text_contains: "openai.com"
+fields:
+  invoice_number:
+    regex: 'Invoice number:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Amount due:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

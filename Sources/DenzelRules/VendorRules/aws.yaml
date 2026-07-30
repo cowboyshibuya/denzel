@@ -1,0 +1,16 @@
+id: aws
+name: Amazon Web Services
+aliases:
+  - AWS
+  - Amazon Web Services, Inc.
+match:
+  any:
+    - text_contains: "aws.amazon.com"
+fields:
+  invoice_number:
+    regex: 'Invoice Number:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

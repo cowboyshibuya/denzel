@@ -6,7 +6,7 @@ The filesystem is the source of truth. A per-file extended attribute (`com.denze
 
 ## Status
 
-Core milestones (M1–M6) are implemented: filesystem-first library with journal + undo, text-layer extraction against a declarative vendor rulebook with a confidence gate and review queue, a watched Inbox folder, a CLI, and FTS5 search. Vision OCR for scanned documents (M3) is not yet built — invoices need a real PDF text layer today.
+All core milestones (M1–M7) are implemented: filesystem-first library with journal + undo, text-layer extraction with a Vision OCR fallback for scanned documents, a 10-vendor rulebook with a confidence gate and review queue, a watched Inbox folder, a CLI, FTS5 search, and a signed Release build pipeline.
 
 ## Requirements
 

@@ -1,0 +1,16 @@
+id: anthropic
+name: Anthropic
+aliases:
+  - Anthropic
+  - Anthropic, PBC
+match:
+  any:
+    - text_contains: "anthropic.com"
+fields:
+  invoice_number:
+    regex: 'Invoice #:\s*([A-Z0-9-]+)'
+  total:
+    regex: 'Total:\s*\$?([\d.,]+)'
+    money: true
+  issue_date:
+    near: ["Invoice date"]

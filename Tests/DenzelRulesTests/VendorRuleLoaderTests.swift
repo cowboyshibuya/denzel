@@ -6,7 +6,7 @@ struct VendorRuleLoaderTests {
     @Test func loadsAllBundledVendorRules() throws {
         let rules = try VendorRuleLoader.loadBundledRules()
         let ids = Set(rules.map(\.id))
-        #expect(ids == ["cloudflare", "github", "stripe", "vercel", "digitalocean"])
+        #expect(ids == ["cloudflare", "github", "stripe", "vercel", "digitalocean", "aws", "anthropic", "openai", "linear", "notion"])
         for rule in rules {
             #expect(!rule.match.any.isEmpty)
             #expect(rule.fields["invoice_number"] != nil)

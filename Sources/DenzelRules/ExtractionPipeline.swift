@@ -53,7 +53,8 @@ public enum ExtractionPipeline {
             confidenceOverall: overallConfidence,
             confidenceFields: confidenceFields,
             needsReview: !missing.isEmpty,
-            reviewReason: missing.isEmpty ? nil : "missing or low-confidence: \(missing.joined(separator: ", "))"
+            reviewReason: missing.isEmpty ? nil : "missing or low-confidence: \(missing.joined(separator: ", "))",
+            extractedText: extraction.fullText
         )
         return try library.filer().finalize(recordID: staged.id, fields: fields)
     }

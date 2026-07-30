@@ -14,6 +14,10 @@ public struct FiledFields {
     public var confidenceFields: [String: Double]
     public var needsReview: Bool
     public var reviewReason: String?
+    /// Full extracted body text, when available — indexed into FTS5 search
+    /// alongside vendor/invoiceNumber. Nil for manual filing with no PDF
+    /// extraction behind it; the document is still searchable by vendor.
+    public var extractedText: String?
 
     public init(
         vendor: String,
@@ -24,7 +28,8 @@ public struct FiledFields {
         confidenceOverall: Double = 1,
         confidenceFields: [String: Double] = [:],
         needsReview: Bool = false,
-        reviewReason: String? = nil
+        reviewReason: String? = nil,
+        extractedText: String? = nil
     ) {
         self.vendor = vendor
         self.invoiceNumber = invoiceNumber
@@ -35,6 +40,7 @@ public struct FiledFields {
         self.confidenceFields = confidenceFields
         self.needsReview = needsReview
         self.reviewReason = reviewReason
+        self.extractedText = extractedText
     }
 }
 
@@ -95,6 +101,7 @@ public final class LibraryFiler {
 
         let record = DocumentRecord(sidecar: sidecar, filePath: relativePath)
         try store.insert(record)
+        try store.indexText(documentID: id, vendor: fields.vendor, invoiceNumber: fields.invoiceNumber, fullText: fields.extractedText ?? "")
         return record
     }
 
@@ -177,6 +184,7 @@ public final class LibraryFiler {
 
         record = DocumentRecord(sidecar: sidecar, filePath: relativePath)
         try store.update(record)
+        try store.indexText(documentID: recordID, vendor: fields.vendor, invoiceNumber: fields.invoiceNumber, fullText: fields.extractedText ?? "")
         return record
     }
 

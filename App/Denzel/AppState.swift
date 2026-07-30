@@ -124,6 +124,13 @@ final class AppState {
         }
     }
 
+    /// Empty query returns everything filed (no need for a MATCH round trip
+    /// just to show the default list).
+    func search(_ query: String) -> [DocumentRecord] {
+        guard let library, !query.trimmingCharacters(in: .whitespaces).isEmpty else { return filedDocuments }
+        return (try? library.documentStore().search(query)) ?? []
+    }
+
     func undoLast() {
         guard let library else { return }
         do {

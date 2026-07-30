@@ -42,6 +42,7 @@ public final class UndoService {
             // A fresh file: undoing it removes the document entirely.
             try? FileManager.default.removeItem(at: currentURL)
             try store.delete(id: record.id)
+            try store.removeIndex(documentID: record.id)
         }
 
         try journal.append(JournalEntry(

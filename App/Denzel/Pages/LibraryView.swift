@@ -4,6 +4,11 @@ import DenzelCore
 
 struct LibraryView: View {
     let appState: AppState
+    @State private var searchQuery = ""
+
+    private var displayedDocuments: [DocumentRecord] {
+        appState.search(searchQuery)
+    }
 
     var body: some View {
         Group {
@@ -13,8 +18,10 @@ struct LibraryView: View {
                     systemImage: "books.vertical",
                     description: Text("Your filed invoices will show up here.")
                 )
+            } else if displayedDocuments.isEmpty {
+                ContentUnavailableView.search(text: searchQuery)
             } else {
-                List(appState.filedDocuments) { record in
+                List(displayedDocuments) { record in
                     VStack(alignment: .leading) {
                         Text(record.vendor)
                         Text(record.filePath).font(.caption).foregroundStyle(.secondary)
@@ -22,6 +29,7 @@ struct LibraryView: View {
                 }
             }
         }
+        .searchable(text: $searchQuery, prompt: "Search invoices")
         .toolbar {
             ToolbarItem {
                 Button("Undo", systemImage: "arrow.uturn.backward") { appState.undoLast() }

@@ -37,6 +37,14 @@ public enum LibraryScanner {
     public static func rebuild(root: URL, into store: DocumentStore) throws {
         let records = try scan(root: root)
         try store.rebuild(with: records)
+
+        // FTS content isn't in the xattr sidecar (the PDF's own text is
+        // already durable on disk — no need to duplicate it) — re-extract it
+        // here so search survives an index-from-scratch rebuild too.
+        for record in records {
+            let fullText = (try? PDFTextExtractor.extract(from: root.appendingPathComponent(record.filePath)))?.fullText ?? ""
+            try? store.indexText(documentID: record.id, vendor: record.vendor, invoiceNumber: record.invoiceNumber, fullText: fullText)
+        }
     }
 }
 

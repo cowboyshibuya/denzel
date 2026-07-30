@@ -35,5 +35,6 @@ let package = Package(
         ),
         .testTarget(name: "DenzelCoreTests", dependencies: ["DenzelCore"]),
         .testTarget(name: "DenzelRulesTests", dependencies: ["DenzelRules"]),
+        .testTarget(name: "DenzelCLITests", dependencies: ["DenzelCLI"]),
     ]
 )

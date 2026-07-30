@@ -22,14 +22,8 @@ public struct DenzelLibrary {
     }
 
     /// Long-lived handles (an open SQLite connection, a journal file) are
-    /// resolved and cached once, with security-scoped access started and
-    /// left open for the life of this `DenzelLibrary` — a POSIX descriptor
-    /// obtained while access is active stays valid after
-    /// `stopAccessingSecurityScopedResource()` would later be called, so this
-    /// only matters for *new* opens, which these methods avoid after the
-    /// first call. Denzel ships non-sandboxed today, which is what makes
-    /// holding scope open for the app's session low-risk; revisit before
-    /// ever shipping a sandboxed build.
+    /// resolved and cached once for the life of this `DenzelLibrary`. No
+    /// security scope to keep open here — see `LibraryLocationResolver`.
     public func documentStore() throws -> DocumentStore { try handles.documentStore() }
     public func journal() throws -> Journal { try handles.journal() }
     public func filer() throws -> LibraryFiler { try handles.filer() }
@@ -66,7 +60,6 @@ private final class Handles {
     func rootURL() throws -> URL {
         if let cachedRoot { return cachedRoot }
         let (url, _) = try resolver.resolve(location)
-        _ = url.startAccessingSecurityScopedResource()
         cachedRoot = url
         return url
     }

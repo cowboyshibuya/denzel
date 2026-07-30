@@ -69,7 +69,7 @@ let fixtures: [Fixture] = [
 private func makeTempLibrary() throws -> DenzelLibrary {
     let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let bookmark = try dir.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+    let bookmark = try dir.bookmarkData(includingResourceValuesForKeys: nil, relativeTo: nil)
     return DenzelLibrary(location: LibraryLocation(bookmarkData: bookmark))
 }
 

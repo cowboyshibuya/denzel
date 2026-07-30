@@ -135,16 +135,7 @@ final class AppState {
     }
 
     private func refreshBookmark(for url: URL) {
-        guard url.startAccessingSecurityScopedResource() else {
-            needsLibraryPicker = true
-            return
-        }
-        defer { url.stopAccessingSecurityScopedResource() }
-        guard let fresh = try? url.bookmarkData(
-            options: .withSecurityScope,
-            includingResourceValuesForKeys: nil,
-            relativeTo: nil
-        ) else {
+        guard let fresh = try? url.bookmarkData(includingResourceValuesForKeys: nil, relativeTo: nil) else {
             needsLibraryPicker = true
             return
         }

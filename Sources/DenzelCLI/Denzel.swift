@@ -5,7 +5,8 @@ import ArgumentParser
 struct Denzel: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "denzel",
-        abstract: "Denzel invoice library CLI (stub — real commands land in M1+).",
-        version: "0.1.0"
+        abstract: "Denzel invoice library CLI.",
+        version: "0.1.0",
+        subcommands: [ScanCommand.self, FileCommand.self, LsCommand.self, UndoCommand.self, ExportCommand.self]
     )
 }

@@ -10,12 +10,11 @@ func pickLibraryFolder() -> LibraryLocation? {
     panel.canChooseFiles = false
     panel.allowsMultipleSelection = false
     panel.message = "Choose a folder to store your Denzel library"
+    // Plain bookmark, not .withSecurityScope — see LibraryLocationResolver
+    // for why: security scope silently doesn't work on this non-sandboxed,
+    // non-entitled build and isn't needed for a non-sandboxed process anyway.
     guard panel.runModal() == .OK, let url = panel.url,
-          let bookmark = try? url.bookmarkData(
-              options: .withSecurityScope,
-              includingResourceValuesForKeys: nil,
-              relativeTo: nil
-          )
+          let bookmark = try? url.bookmarkData(includingResourceValuesForKeys: nil, relativeTo: nil)
     else { return nil }
     return LibraryLocation(bookmarkData: bookmark)
 }

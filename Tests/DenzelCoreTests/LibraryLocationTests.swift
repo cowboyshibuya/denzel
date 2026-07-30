@@ -9,11 +9,7 @@ struct LibraryLocationTests {
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
 
-        let bookmark = try dir.bookmarkData(
-            options: .withSecurityScope,
-            includingResourceValuesForKeys: nil,
-            relativeTo: nil
-        )
+        let bookmark = try dir.bookmarkData(includingResourceValuesForKeys: nil, relativeTo: nil)
         let (resolved, isStale) = try LibraryLocationResolver().resolve(LibraryLocation(bookmarkData: bookmark))
 
         #expect(resolved.standardizedFileURL.path == dir.standardizedFileURL.path)

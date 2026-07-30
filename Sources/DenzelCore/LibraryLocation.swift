@@ -8,5 +8,4 @@ public struct LibraryLocation: Codable, Equatable {
 
 public enum LibraryLocationError: Error {
     case bookmarkResolutionFailed(Error)
-    case accessDenied
 }

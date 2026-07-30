@@ -8,6 +8,9 @@ import DenzelCore
 final class AppState {
     var library: DenzelLibrary?
     var needsLibraryPicker = false
+    var stagedDocuments: [DocumentRecord] = []
+    var filedDocuments: [DocumentRecord] = []
+    var lastErrorMessage: String?
 
     private let store = LibraryLocationStore()
     private let resolver = LibraryLocationResolver()
@@ -23,6 +26,7 @@ final class AppState {
                 refreshBookmark(for: url)
             } else {
                 library = DenzelLibrary(location: location, resolver: resolver)
+                refreshDocuments()
             }
         } catch {
             // Folder moved/deleted/inaccessible — ask again rather than crash.
@@ -34,6 +38,49 @@ final class AppState {
         store.save(location)
         library = DenzelLibrary(location: location, resolver: resolver)
         needsLibraryPicker = false
+        refreshDocuments()
+    }
+
+    func refreshDocuments() {
+        guard let library else { return }
+        do {
+            let all = try library.documentStore().fetchAll()
+            stagedDocuments = all.filter(\.needsReview).sorted { $0.filedAt > $1.filedAt }
+            filedDocuments = all.filter { !$0.needsReview }.sorted { $0.filedAt > $1.filedAt }
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
+    }
+
+    func stageDropped(urls: [URL]) {
+        guard let library else { return }
+        do {
+            let filer = try library.filer()
+            for url in urls { _ = try filer.stage(source: url) }
+            refreshDocuments()
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
+    }
+
+    func fileManually(recordID: UUID, fields: FiledFields) {
+        guard let library else { return }
+        do {
+            _ = try library.filer().finalize(recordID: recordID, fields: fields)
+            refreshDocuments()
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
+    }
+
+    func undoLast() {
+        guard let library else { return }
+        do {
+            _ = try library.undoService().undoLast()
+            refreshDocuments()
+        } catch {
+            lastErrorMessage = String(describing: error)
+        }
     }
 
     private func refreshBookmark(for url: URL) {
@@ -53,5 +100,6 @@ final class AppState {
         let location = LibraryLocation(bookmarkData: fresh)
         store.save(location)
         library = DenzelLibrary(location: location, resolver: resolver)
+        refreshDocuments()
     }
 }

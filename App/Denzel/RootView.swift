@@ -32,9 +32,9 @@ struct RootView: View {
         } detail: {
             Group {
                 switch selection {
-                case .inbox: InboxView()
+                case .inbox: InboxView(appState: appState)
                 case .review: ReviewView()
-                case .library: LibraryView()
+                case .library: LibraryView(appState: appState)
                 case .none: ContentUnavailableView("Select a page", systemImage: "sidebar.left")
                 }
             }

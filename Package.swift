@@ -15,10 +15,16 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
+        .package(url: "https://github.com/jpsim/Yams.git", from: "6.0.0"),
     ],
     targets: [
-        .target(name: "DenzelCore"),
-        .target(name: "DenzelRules", dependencies: ["DenzelCore"]),
+        .target(name: "DenzelCore", dependencies: [.product(name: "GRDB", package: "GRDB.swift")]),
+        .target(
+            name: "DenzelRules",
+            dependencies: ["DenzelCore", .product(name: "Yams", package: "Yams")],
+            resources: [.copy("VendorRules")]
+        ),
         .executableTarget(
             name: "DenzelCLI",
             dependencies: [
